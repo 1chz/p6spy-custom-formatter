@@ -1,6 +1,8 @@
 # P6spy
 쿼리 튜닝을 쾌적하게 ! P6spy 개조하기
 
+<img src="https://blog.kakaocdn.net/dn/dmtdA3/btq52biODsp/PRr2duWhzoktw11PVf2uV0/img.png" />
+
 ## **🚫 주의!**
 
 -   **굉장히 비싼 자원을 사용하므로 운영 환경에선 절대 사용하지 말 것을 권장 드립니다.**
