@@ -18,22 +18,30 @@ public class P6spyPrettySqlFormatter implements MessageFormattingStrategy {
                 callStack.push(stackTraceElement.toString());
             }
         }
+    
         StringBuilder callStackBuilder = new StringBuilder();
         int order = 1;
         while(callStack.size() != 0) {
             callStackBuilder.append("\n\t\t" + (order++) + ". " + callStack.pop());
         }
-        return format(connectionId, callStackBuilder.toString(), elapsed, category, sql);
+    
+        String message = new StringBuilder().append("\n\n\tConnection ID: ").append(connectionId)
+                                            .append("\n\tExecution Time: ").append(elapsed).append(" ms\n")
+                                            .append("\n\tCall Stack (number 1 is entry point): ").append(callStackBuilder).append("\n")
+                                            .append("\n----------------------------------------------------------------------------------------------------")
+                                            .toString();
+    
+        return sqlFormat(sql, category, message);
     }
     
-    private String format(final int connectionId, final String callStack, final long elapsed, final String category, String sql) {
+    private String sqlFormat(String sql, String category, String message) {
         if(sql.trim() == null || sql.trim().isEmpty()) {
             return "";
         }
         
         if(Category.STATEMENT.getName().equals(category)) {
             String s = sql.trim().toLowerCase(Locale.ROOT);
-            if("create".startsWith(s) || "alter".startsWith(s) || "comment".startsWith(s)) {
+            if(s.startsWith("create") || s.startsWith("alter") || s.startsWith("comment")) {
                 sql = FormatStyle.DDL
                         .getFormatter()
                         .format(sql);
@@ -45,13 +53,10 @@ public class P6spyPrettySqlFormatter implements MessageFormattingStrategy {
             }
         }
         
-        return new StringBuilder()
-                .append(sql.toUpperCase())
-                .append("\n\n\tConnection ID: ").append(connectionId)
-                .append("\n\tExecution Time: ").append(elapsed).append(" ms\n")
-                .append("\n\tCall Stack (number 1 is entry point): ").append(callStack).append("\n")
-                .append("\n-----------------------------------------------------------------------------------------------------------------------------------------------------")
-                .toString();
+        return new StringBuilder().append("\n")
+                                  .append(sql.toUpperCase())
+                                  .append(message)
+                                  .toString();
     }
     
 }
