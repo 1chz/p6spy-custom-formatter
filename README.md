@@ -1,7 +1,7 @@
 # P6spy
 쿼리 튜닝을 쾌적하게 ! P6spy 개조하기
 
-<img src="https://blog.kakaocdn.net/dn/dmtdA3/btq52biODsp/PRr2duWhzoktw11PVf2uV0/img.png" />
+<img src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FdBmPrE%2Fbtq53vt8rRH%2FawQq9rfuQGEBevHWAY8u8k%2Fimg.png" />
 
 ## **🚫 주의!**
 
@@ -35,81 +35,75 @@ decorator:
       enable-logging: true
 ```
 
+운영환경이라 이 기능을 사용하고 싶지 않다면, 운영환경 profile에 위의 `enable-logging`을 `false`로 지정해주면 된다.
+
 ---
 
 `JPA`를 쓰다 보면 예상 밖의 쿼리가 발생하는 경우가 굉장히 많다.
 
-일단, `JPA`를 쓰지 않더라도 쿼리를 파악하기 좋게 해주는 라이브러리로 `p6spy`가 있는데,
+스프링에는 쿼리를 파악하기 좋게 해주는 라이브러리로 `p6spy`가 있는데,
 
-기본값으로 사용할 경우 생각보다 가독성이 좋지 않다.
+기본값으로 사용할 경우 단순히 파라미터 바인딩만 보여주는 수준으로 생각보다 가독성이 좋지 않다.
 
-왜냐하면 쿼리가 한번 발생하면
+ 
 
-파라미터가 바인딩되지 않은 원본 쿼리와
+큰 문제점은 쿼리가 한번 발생하면 파라미터가 바인딩되지 않은 원본 쿼리와
 
-파라미터를 바인딩한 후의 쿼리
-
-총 두 개의 쿼리가 나란히 출력되기 때문이다.
+파라미터를 바인딩한 후의 쿼리, 총 두 개의 쿼리가 나란히 출력되기 때문이다.
 
 
 <img src="https://blog.kakaocdn.net/dn/OqVeK/btq5002NBXw/6CyKDoYPDaTt2EidF8iqX1/img.png" />
 
 
-이처럼 간단한 쿼리의 경우는 괜찮을 수 있으나,
+이처럼 간단한 쿼리의 경우는 그럭저럭 괜찮을 수 있으나,
 
-통계성 쿼리 같은 복잡하고 수십 줄 이상의 빅 쿼리가 두 개 연달아 나오면 굉장히 혼란스럽다.
+통계성 쿼리 같이 복잡하고 수십 줄 이상되는 빅 쿼리가 두 개 연달아 나오면 굉장히 혼란스럽다.
 
-그래서 쿼리를 파악하기 쉽게 하기 위해 p6spy를 커스터마이징했다.
+심지어 두 개의 쿼리 중 한 개는 물음표가 가득할 것이다.
+
+ 
+
+이런 문제를 개선하기 위해 `p6spy`를 커스터마이징 했다.
 
 ---
 
 ### **📕 p6spy는 대략 다음과 같은 과정을 거쳐 쿼리를 캡처한다.**
 
 
-<img src="https://blog.kakaocdn.net/dn/TWMZf/btq54VrLzro/P86PEEFjvqKIPMh4PEoo81/img.png" />
+<img src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2F2frmE%2Fbtq52zqgscj%2Fd55Xnkb2ETikEHaAivWKYK%2Fimg.png" />
 
 
-1\. `DataSource`를 래핑한 `ResultSetWrapper`(프락시)를 만든다.
+1\. `DataSource`를 래핑하여 프락시를 만든다.
 
 2\. 쿼리가 발생하여 JDBC가 `ResultSet`을 반환하면 이를 만들어둔 프락시로 가로챈다.
 
-3\. 내부적으로 이런저런 정보들을 수집하고 p6spy의 옵션을 적용해준다.
+3\. 내부적으로 `ResultSet`의 정보를 분석하고 `p6spy`의 옵션을 적용해준다.
 
 4\. `Slf4j`를 사용해 로깅한다.
 
 ---
 
-이때 쿼리를 포매팅하는 Default 객체가 `MultiLineFormat`이다.
+처음 p6spy가 초기화될 때 쿼리를 포매팅하는 객체를 지정하는데 `Default` 객체가 `MultiLineFormat`이다.
 
 ```
 public class P6SpyProperties {
 
-    /**
-     * Enables logging JDBC events.
-     *
-     * @see com.p6spy.engine.logging.P6LogFactory
-     */
     private boolean enableLogging = true;
-    /**
-     * Enables multiline output.
-     */
+   
     private boolean multiline = true;
-    /**
-     * Logging to use for logging queries.
-     */
+    
     private P6SpyLogging logging = P6SpyLogging.SLF4J;
-    /**
-     * Name of log file to use (only with logging=file).
-     */
+    
     private String logFile = "spy.log";
-    /**
-     * Custom log format.
-     */
+    
     private String logFormat;
 }
 ```
 
-private String logFormat은 기본값이 null이며
+`private boolean multiline = true`이며
+
+`private String logFormat = null`이다.
+
 
 ```
 if (!initialP6SpyOptions.containsKey("logMessageFormat")) {
@@ -123,7 +117,7 @@ if (!initialP6SpyOptions.containsKey("logMessageFormat")) {
         }
 ```
 
-null이기 때문에 `CustomLogMessageFormat`이 아닌 `MultiLineFormat`으로 타고 들어간다.
+위 조건으로 인해 `CustomLogMessageFormat`이 아닌 `MultiLineFormat``으로 타고 들어간다.
 
 이후 `MultiLineFormat`의 포맷을 보면
 
@@ -144,7 +138,7 @@ public class MultiLineFormat implements MessageFormattingStrategy {
 
 이러한 결과가 나타난다.
 
-코드를 보면 알겠지만, 원하는 포맷으로 확장하기 위해서 `CustomLogMessageFormat`을 구현하여 지정해주면 된다.
+코드를 보면 알겠지만, 원하는 포맷으로 확장하기 위해서 포매터를 직접 구현하여 지정해주면 된다.
 
 ```
 @Configuration
@@ -158,7 +152,7 @@ public class P6spyConfig {
 }
 ```
 
-설정 클래스를 생성하여 새로운 LogFormatter를 지정해준 후 구현에 들어간다.
+설정 클래스를 생성하여 새로운 `LogFormatter`를 지정해준 후 구현에 들어간다.
 
 ```
 public class P6spyPrettySqlFormatter implements MessageFormattingStrategy {
@@ -171,9 +165,69 @@ public class P6spyPrettySqlFormatter implements MessageFormattingStrategy {
 }
 ```
 
-`MessageFormattingStrategy(메시지 포맷 전략)`을 구현한다.
+`MessageFormattingStrategy`을 구현한다.
 
-우선 해당 쿼리가 정확히 어떤 경로를 타고 발생했는지 기록해줄 것이다.
+이름 그대로 메시지 포매팅 전략이다.
+
+기본적으로 `SingleLineFormat`, `CustomLineFormat`, `MultiLineFormat`이 구현돼있으며
+
+`CustomLineFormat`은 이름 때문에 약간 헷갈리는데 사용자가 커스터마이징 할 포매터가 아니고,
+
+`SingleLineFormat`을 약간 더 손본 포매터다. 그러므로 이 녀석을 쓰면 안 되고 직접 구현해야 한다.
+
+아래는 `CustomLineFormat`의 전체 코드이다. 참고 바람.
+
+```
+public class CustomLineFormat implements MessageFormattingStrategy {
+
+  private static final MessageFormattingStrategy FALLBACK_FORMATTING_STRATEGY = new SingleLineFormat();
+
+  public static final String CONNECTION_ID = "%(connectionId)";
+  public static final String CURRENT_TIME = "%(currentTime)";
+  public static final String EXECUTION_TIME = "%(executionTime)";
+  public static final String CATEGORY = "%(category)";
+  public static final String EFFECTIVE_SQL = "%(effectiveSql)";
+  public static final String EFFECTIVE_SQL_SINGLELINE = "%(effectiveSqlSingleLine)";
+  public static final String SQL = "%(sql)";
+  public static final String SQL_SINGLE_LINE = "%(sqlSingleLine)";
+  public static final String URL = "%(url)";
+
+  /**
+   * Formats a log message for the logging module
+   *
+   * @param connectionId the id of the connection
+   * @param now          the current ime expressing in milliseconds
+   * @param elapsed      the time in milliseconds that the operation took to complete
+   * @param category     the category of the operation
+   * @param prepared     the SQL statement with all bind variables replaced with actual values
+   * @param sql          the sql statement executed
+   * @param url          the database url where the sql statement executed
+   * @return the formatted log message
+   */
+  @Override
+  public String formatMessage(final int connectionId, final String now, final long elapsed, final String category, final String prepared, final String sql, final String url) {
+
+    String customLogMessageFormat = P6SpyOptions.getActiveInstance().getCustomLogMessageFormat();
+
+    if (customLogMessageFormat == null) {
+      // Someone forgot to configure customLogMessageFormat: fall back to built-in
+      return FALLBACK_FORMATTING_STRATEGY.formatMessage(connectionId, now, elapsed, category, prepared, sql, url);
+    }
+
+    return customLogMessageFormat
+      .replaceAll(Pattern.quote(CONNECTION_ID), Integer.toString(connectionId))
+      .replaceAll(Pattern.quote(CURRENT_TIME), now)
+      .replaceAll(Pattern.quote(EXECUTION_TIME), Long.toString(elapsed))
+      .replaceAll(Pattern.quote(CATEGORY), category)
+      .replaceAll(Pattern.quote(EFFECTIVE_SQL), Matcher.quoteReplacement(prepared))
+      .replaceAll(Pattern.quote(EFFECTIVE_SQL_SINGLELINE), Matcher.quoteReplacement(P6Util.singleLine(prepared)))
+      .replaceAll(Pattern.quote(SQL), Matcher.quoteReplacement(sql))
+      .replaceAll(Pattern.quote(SQL_SINGLE_LINE), Matcher.quoteReplacement(P6Util.singleLine(sql)))
+      .replaceAll(Pattern.quote(URL), url);
+  }
+```
+
+쿼리가 정확히 어떤 경로를 타고 발생했는지 추적하여 기록해줄 것이다.
 
 ```
 StackTraceElement[] stackTrace = new Throwable().getStackTrace();
@@ -182,7 +236,7 @@ StackTraceElement[] stackTrace = new Throwable().getStackTrace();
     }
 ```
 
-`Throwable`을 호출하여 `stackTrace`를 쭉 뽑아보면
+`Throwable`을 호출하여 `stack trace`를 쭉 뽑아보면
 
 ```
 io.p6spy.formatter.P6spyPrettySqlFormatter.formatMessage(P6spyPrettySqlFormatter.java:15)
@@ -284,7 +338,7 @@ for(StackTraceElement stackTraceElement : stackTrace) {
 ```
 
 
-<img src="https://blog.kakaocdn.net/dn/bgRRsF/btq52BnMaFm/G1xpyThrgjfyc2jLfzx71k/img.png" />
+<img src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbgRRsF%2Fbtq52BnMaFm%2FG1xpyThrgjfyc2jLfzx71k%2Fimg.png" />
 
 
 이러한 로그를 얻을 수 있다.
@@ -353,14 +407,14 @@ StackTraceElement[] stackTrace = new Throwable().getStackTrace();
 여기서 `P6spyPrettySqlFormatter`의 `trace`는 필요 없기 때문에 필터링 해 준다.
 
 
-<img src="https://blog.kakaocdn.net/dn/bMPuxL/btq50ZbTTF5/NFzG0PdGYpBhp57HC1nnK0/img.png" />
+<img src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FdnJ4AW%2Fbtq56iUQMmd%2Fk9O6xK9xQT51uxoJUEkAeK%2Fimg.png" />
 
 
 원하는 결과만 나온다.
 
 이제 이 로그를 더 보기 편하게 역순으로 뒤집어줄 것이다.
 
-Stack을 활용할 것인데, 추출되는 trace를 순서대로 Stack에 push 하고, 다시 pop 하면 역순으로 뒤집힐 것이다.
+`Stack`을 활용할 것인데, 추출되는 `trace`를 순서대로 Stack에 `push` 하고, 다시 `pop` 하면 역순으로 뒤집힐 것이다.
 
 ```
 @Override
@@ -368,10 +422,12 @@ public String formatMessage(final int connectionId, final String now, final long
     Stack<String> callStack = new Stack<>();
     StackTraceElement[] stackTrace = new Throwable().getStackTrace();
     for(StackTraceElement stackTraceElement : stackTrace) {
-        if(stackTraceElement.toString().startsWith("io.p6spy") && !stackTraceElement.toString().contains("P6spyPrettySqlFormatter")) {
-            callStack.push(stackTraceElement.toString());
+        String trace = stackTraceElement.toString();
+        if(trace.startsWith("io.p6spy") && !trace.contains("P6spyPrettySqlFormatter")) {
+            callStack.push(trace);
         }
     }
+    
     StringBuilder callStackBuilder = new StringBuilder();
     int order = 1;
     while(callStack.size() != 0) {
@@ -382,7 +438,7 @@ public String formatMessage(final int connectionId, final String now, final long
 ```
 
 
-<img src="https://blog.kakaocdn.net/dn/b8jty3/btq52SW9y1L/V5yBIs5gfS5gXcDpcSRE4K/img.png" />
+<img src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fb8jty3%2Fbtq52SW9y1L%2FV5yBIs5gfS5gXcDpcSRE4K%2Fimg.png" />
 
 
 쿼리가 발생한 지점과 클릭하면 즉시 이동할 수 있는 포탈(🤗)이 생성됐다.
@@ -414,26 +470,35 @@ public class P6spyPrettySqlFormatter implements MessageFormattingStrategy {
         Stack<String> callStack = new Stack<>();
         StackTraceElement[] stackTrace = new Throwable().getStackTrace();
         for(StackTraceElement stackTraceElement : stackTrace) {
-            if(stackTraceElement.toString().startsWith("io.p6spy") && !stackTraceElement.toString().contains("P6spyPrettySqlFormatter")) {
-                callStack.push(stackTraceElement.toString());
+            String trace = stackTraceElement.toString();
+            if(trace.startsWith("io.p6spy") && !trace.contains("P6spyPrettySqlFormatter")) {
+                callStack.push(trace);
             }
         }
+    
         StringBuilder callStackBuilder = new StringBuilder();
         int order = 1;
         while(callStack.size() != 0) {
             callStackBuilder.append("\n\t\t" + (order++) + ". " + callStack.pop());
         }
-        return format(connectionId, callStackBuilder.toString(), elapsed, category, sql);
+    
+        String message = new StringBuilder().append("\n\n\tConnection ID: ").append(connectionId)
+                                            .append("\n\tExecution Time: ").append(elapsed).append(" ms\n")
+                                            .append("\n\tCall Stack (number 1 is entry point): ").append(callStackBuilder).append("\n")
+                                            .append("\n----------------------------------------------------------------------------------------------------")
+                                            .toString();
+    
+        return sqlFormat(sql, category, message);
     }
     
-    private String format(final int connectionId, final String callStack, final long elapsed, final String category, String sql) {
+    private String sqlFormat(String sql, String category, String message) {
         if(sql.trim() == null || sql.trim().isEmpty()) {
             return "";
         }
         
         if(Category.STATEMENT.getName().equals(category)) {
             String s = sql.trim().toLowerCase(Locale.ROOT);
-            if("create".startsWith(s) || "alter".startsWith(s) || "comment".startsWith(s)) {
+            if(s.startsWith("create") || s.startsWith("alter") || s.startsWith("comment")) {
                 sql = FormatStyle.DDL
                         .getFormatter()
                         .format(sql);
@@ -445,16 +510,13 @@ public class P6spyPrettySqlFormatter implements MessageFormattingStrategy {
             }
         }
         
-        return new StringBuilder()
-                .append(sql.toUpperCase())
-                .append("\n\n\tConnection ID: ").append(connectionId)
-                .append("\n\tExecution Time: ").append(elapsed).append(" ms\n")
-                .append("\n\tCall Stack (number 1 is entry point): ").append(callStack).append("\n")
-                .append("\n-----------------------------------------------------------------------------------------------------------------------------------------------------")
-                .toString();
+        return new StringBuilder().append("\n")
+                                  .append(sql.toUpperCase())
+                                  .append(message)
+                                  .toString();
     }
     
 }
 ```
 
-<img src="https://blog.kakaocdn.net/dn/dmtdA3/btq52biODsp/PRr2duWhzoktw11PVf2uV0/img.png" />
+<img src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FEd76K%2Fbtq50ZXt06U%2FMdQkENCAHgnYeQ9f9znKM0%2Fimg.png" />
