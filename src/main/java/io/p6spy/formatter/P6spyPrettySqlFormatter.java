@@ -16,7 +16,7 @@ public class P6spyPrettySqlFormatter implements MessageFormattingStrategy {
     
         for(int i = 0; i < stackTrace.length; i++) {
             String trace = stackTrace[i].toString();
-            if(trace.startsWith("io.p6spy")) {
+            if(trace.startsWith("io.p6spy") && !trace.contains("P6spyPrettySqlFormatter")) {
                 callStack.push(trace);
             }
         }
