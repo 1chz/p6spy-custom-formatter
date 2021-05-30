@@ -469,9 +469,10 @@ public class P6spyPrettySqlFormatter implements MessageFormattingStrategy {
     public String formatMessage(final int connectionId, final String now, final long elapsed, final String category, final String prepared, final String sql, final String url) {
         Stack<String> callStack = new Stack<>();
         StackTraceElement[] stackTrace = new Throwable().getStackTrace();
-        for(StackTraceElement stackTraceElement : stackTrace) {
-            String trace = stackTraceElement.toString();
-            if(trace.startsWith("io.p6spy") && !trace.contains("P6spyPrettySqlFormatter")) {
+        
+        for(int i = 0; i < stackTrace.length; i++) {
+            String trace = stackTrace[i].toString();
+            if(trace.startsWith("io.p6spy")) {
                 callStack.push(trace);
             }
         }
