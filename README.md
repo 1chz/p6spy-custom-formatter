@@ -231,8 +231,9 @@ public class CustomLineFormat implements MessageFormattingStrategy {
 
 ```
 StackTraceElement[] stackTrace = new Throwable().getStackTrace();
-    for(StackTraceElement stackTraceElement : stackTrace) {
-        System.out.println(stackTraceElement);
+
+for(int i = 0; i < stackTrace.length; i++) {
+        System.out.println(stackTrace[i]);
     }
 ```
 
@@ -330,9 +331,10 @@ java.base/java.lang.Thread.run(Thread.java:834)
 따라서 아래와 같이 코드를 작성해준다면...
 
 ```
-for(StackTraceElement stackTraceElement : stackTrace) {
-        if(stackTraceElement.toString().startsWith("io.p6spy")) {
-            System.out.println(stackTraceElement);
+for(int i = 0; i < stackTrace.length; i++) {
+        String trace = stackTrace[i].toString();
+        if(trace.startsWith("io.p6spy")) {
+            System.out.println(trace);
         }
     }
 ```
@@ -397,11 +399,13 @@ public class MainController {
 
 ```
 StackTraceElement[] stackTrace = new Throwable().getStackTrace();
-    for(StackTraceElement stackTraceElement : stackTrace) {
-            if(stackTraceElement.toString().startsWith("io.p6spy") && !stackTraceElement.toString().contains("P6spyPrettySqlFormatter")) {
-                System.out.println(stackTraceElement);
-            }
+
+for(int i = 0; i < stackTrace.length; i++) {
+        String trace = stackTrace[i].toString();
+        if(trace.startsWith("io.p6spy") && !trace.contains("P6spyPrettySqlFormatter")) {
+            System.out.println(trace);
         }
+    }
 ```
 
 여기서 `P6spyPrettySqlFormatter`의 `trace`는 필요 없기 때문에 필터링 해 준다.
@@ -421,8 +425,9 @@ StackTraceElement[] stackTrace = new Throwable().getStackTrace();
 public String formatMessage(final int connectionId, final String now, final long elapsed, final String category, final String prepared, final String sql, final String url) {
     Stack<String> callStack = new Stack<>();
     StackTraceElement[] stackTrace = new Throwable().getStackTrace();
-    for(StackTraceElement stackTraceElement : stackTrace) {
-        String trace = stackTraceElement.toString();
+    
+    for(int i = 0; i < stackTrace.length; i++) {
+        String trace = stackTrace[i].toString();
         if(trace.startsWith("io.p6spy") && !trace.contains("P6spyPrettySqlFormatter")) {
             callStack.push(trace);
         }
