@@ -22,7 +22,7 @@
 
 ## **✅ 필수 설정**
 
-```
+```yaml
 //build.gradle
 implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.7.1'
 ```
@@ -85,7 +85,7 @@ decorator:
 
 처음 p6spy가 초기화될 때 쿼리를 포매팅하는 객체를 지정하는데 `Default` 객체가 `MultiLineFormat`이다.
 
-```
+```java
 public class P6SpyProperties {
 
     private boolean enableLogging = true;
@@ -105,7 +105,7 @@ public class P6SpyProperties {
 `private String logFormat = null`이다.
 
 
-```
+```java
 if (!initialP6SpyOptions.containsKey("logMessageFormat")) {
             if (p6spy.getLogFormat() != null) {
                 System.setProperty("p6spy.config.logMessageFormat", "com.p6spy.engine.spy.appender.CustomLineFormat");
@@ -121,7 +121,7 @@ if (!initialP6SpyOptions.containsKey("logMessageFormat")) {
 
 이후 `MultiLineFormat`의 포맷을 보면
 
-```
+```java
 public class MultiLineFormat implements MessageFormattingStrategy {
 
   @Override
@@ -140,7 +140,7 @@ public class MultiLineFormat implements MessageFormattingStrategy {
 
 코드를 보면 알겠지만, 원하는 포맷으로 확장하기 위해서 포매터를 직접 구현하여 지정해주면 된다.
 
-```
+```java
 @Configuration
 public class P6spyConfig {
     
@@ -154,7 +154,7 @@ public class P6spyConfig {
 
 설정 클래스를 생성하여 새로운 `LogFormatter`를 지정해준 후 구현에 들어간다.
 
-```
+```java
 public class P6spyPrettySqlFormatter implements MessageFormattingStrategy {
     
     @Override
@@ -177,7 +177,7 @@ public class P6spyPrettySqlFormatter implements MessageFormattingStrategy {
 
 아래는 `CustomLineFormat`의 전체 코드이다. 참고 바람.
 
-```
+```java
 public class CustomLineFormat implements MessageFormattingStrategy {
 
   private static final MessageFormattingStrategy FALLBACK_FORMATTING_STRATEGY = new SingleLineFormat();
@@ -229,7 +229,7 @@ public class CustomLineFormat implements MessageFormattingStrategy {
 
 쿼리가 정확히 어떤 경로를 타고 발생했는지 추적하여 기록해줄 것이다.
 
-```
+```java
 StackTraceElement[] stackTrace = new Throwable().getStackTrace();
 
 for(int i = 0; i < stackTrace.length; i++) {
@@ -239,7 +239,7 @@ for(int i = 0; i < stackTrace.length; i++) {
 
 `Throwable`을 호출하여 `stack trace`를 쭉 뽑아보면
 
-```
+```shell
 io.p6spy.formatter.P6spyPrettySqlFormatter.formatMessage(P6spyPrettySqlFormatter.java:15)
 com.p6spy.engine.spy.appender.Slf4JLogger.logSQL(Slf4JLogger.java:50)
 com.p6spy.engine.common.P6LogQuery.doLog(P6LogQuery.java:121)
@@ -330,7 +330,7 @@ java.base/java.lang.Thread.run(Thread.java:834)
 
 따라서 아래와 같이 코드를 작성해준다면...
 
-```
+```java
 for(int i = 0; i < stackTrace.length; i++) {
         String trace = stackTrace[i].toString();
         if(trace.startsWith("io.p6spy")) {
@@ -351,7 +351,7 @@ for(int i = 0; i < stackTrace.length; i++) {
 
 `MainControlelr`의 코드를 보자.
 
-```
+```java
 @Controller
 @RequiredArgsConstructor
 public class MainController {
@@ -397,7 +397,7 @@ public class MainController {
 }
 ```
 
-```
+```java
 StackTraceElement[] stackTrace = new Throwable().getStackTrace();
 
 for(int i = 0; i < stackTrace.length; i++) {
@@ -420,7 +420,7 @@ for(int i = 0; i < stackTrace.length; i++) {
 
 `Stack`을 활용할 것인데, 추출되는 `trace`를 순서대로 Stack에 `push` 하고, 다시 `pop` 하면 역순으로 뒤집힐 것이다.
 
-```
+```java
 @Override
 public String formatMessage(final int connectionId, final String now, final long elapsed, final String category, final String prepared, final String sql, final String url) {
     Stack<String> callStack = new Stack<>();
@@ -454,7 +454,7 @@ public String formatMessage(final int connectionId, final String now, final long
 
 이에 대한 자세한 내용은 `p6spy docs`를 보면 하기와 같다. 
 
-```
+```shell
 Params:
 connectionId – the id of the connection
 now – the current ime expressing in milliseconds
@@ -467,7 +467,7 @@ url – the database url where the sql statement executed
 
 이 파라미터들을 적당히 버무려 준다.
 
-```
+```java
 import com.p6spy.engine.logging.Category;
 import com.p6spy.engine.spy.appender.MessageFormattingStrategy;
 import org.hibernate.engine.jdbc.internal.FormatStyle;
@@ -565,7 +565,7 @@ public class P6spyPrettySqlFormatter implements MessageFormattingStrategy {
     private Predicate<String> isExcludeWords() {
         return charSequence -> charSequence.startsWith(PACKAGE) && !charSequence.contains(P6SPY_FORMATTER);
     }
-
+}
 ```
 
 <img src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FEd76K%2Fbtq50ZXt06U%2FMdQkENCAHgnYeQ9f9znKM0%2Fimg.png" />
