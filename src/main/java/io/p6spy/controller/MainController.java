@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequiredArgsConstructor
 public class MainController {
-    
     private final StudentRepository studentRepository;
     private final SchoolRepository schoolRepository;
     
@@ -52,5 +51,4 @@ public class MainController {
     private void call_3(Student student) {
         studentRepository.save(student);
     }
-    
 }

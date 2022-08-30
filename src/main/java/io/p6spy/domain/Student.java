@@ -12,15 +12,13 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Student implements Serializable {
-    
     private static final long serialVersionUID = 23186552736747631L;
     
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "student_id")
+    @Id 
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
     @ManyToOne
-    @JoinColumn(name = "school_id")
     private School school;
     
     private String name;
@@ -30,5 +28,4 @@ public class Student implements Serializable {
     protected void setSchool(School school) {
         this.school = school;
     }
-    
 }

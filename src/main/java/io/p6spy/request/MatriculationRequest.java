@@ -9,7 +9,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MatriculationRequest {
-    
     private String schoolName;
     private String studentName;
     private int studentAge;

@@ -21,11 +21,11 @@ public class P6spyPrettySqlFormatter implements MessageFormattingStrategy {
     private static final String COMMENT = "comment";
 
     @Override
-    public String formatMessage(final int connectionId, final String now, final long elapsed, final String category, final String prepared, final String sql, final String url) {
+    public String formatMessage(int connectionId, String now, long elapsed, String category, String prepared, String sql, String url) {
         return sqlFormatToUpper(sql, category, getMessage(connectionId, elapsed, getStackBuilder()));
     }
 
-    private String sqlFormatToUpper(final String sql, final String category, final String message) {
+    private String sqlFormatToUpper(String sql, String category, String message) {
         if (Objects.isNull(sql.trim()) || sql.trim().isEmpty()) {
             return "";
         }
@@ -36,7 +36,7 @@ public class P6spyPrettySqlFormatter implements MessageFormattingStrategy {
                 .toString();
     }
 
-    private String sqlFormatToUpper(final String sql, final String category) {
+    private String sqlFormatToUpper(String sql, String category) {
         if (isStatementDDL(sql, category)) {
             return FormatStyle.DDL
                     .getFormatter()
@@ -51,19 +51,19 @@ public class P6spyPrettySqlFormatter implements MessageFormattingStrategy {
                 .replace("+0900", "");
     }
 
-    private boolean isStatementDDL(final String sql, final String category) {
+    private boolean isStatementDDL(String sql, String category) {
         return isStatement(category) && isDDL(sql.trim().toLowerCase(Locale.ROOT));
     }
 
-    private boolean isStatement(final String category) {
+    private boolean isStatement(String category) {
         return Category.STATEMENT.getName().equals(category);
     }
 
-    private boolean isDDL(final String lowerSql) {
+    private boolean isDDL(String lowerSql) {
         return lowerSql.startsWith(CREATE) || lowerSql.startsWith(ALTER) || lowerSql.startsWith(COMMENT);
     }
 
-    private String getMessage(final int connectionId, final long elapsed, final StringBuilder callStackBuilder) {
+    private String getMessage(int connectionId, long elapsed, StringBuilder callStackBuilder) {
         return new StringBuilder()
                 .append(NEW_LINE)
                 .append(NEW_LINE)
@@ -80,14 +80,14 @@ public class P6spyPrettySqlFormatter implements MessageFormattingStrategy {
     }
 
     private StringBuilder getStackBuilder() {
-        final Stack<String> callStack = new Stack<>();
+        Stack<String> callStack = new Stack<>();
         stream(new Throwable().getStackTrace())
                 .map(StackTraceElement::toString)
                 .filter(isExcludeWords())
                 .forEach(callStack::push);
 
         int order = 1;
-        final StringBuilder callStackBuilder = new StringBuilder();
+        StringBuilder callStackBuilder = new StringBuilder();
         while (!callStack.empty()) {
             callStackBuilder.append(MessageFormat.format("{0}\t\t{1}. {2}", NEW_LINE, order++, callStack.pop()));
         }
